@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Timer struct {
-	delayOn  uint
-	delayOff uint
+	delayOn  time.Duration
+	delayOff time.Duration
 }
 
-func NewTimer(delayOn, delayOff uint) *Timer {
+func NewTimer(delayOn, delayOff time.Duration) *Timer {
 	return &Timer{
 		delayOn,
 		delayOff,
@@ -33,10 +34,10 @@ func (t *Timer) Setup(root string) error {
 	}
 	defer offFile.Close()
 
-	if _, err := fmt.Fprintf(onFile, "%d", t.delayOn); err != nil {
+	if _, err := fmt.Fprintf(onFile, "%d", t.delayOn/time.Millisecond); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(offFile, "%d", t.delayOff); err != nil {
+	if _, err := fmt.Fprintf(offFile, "%d", t.delayOff/time.Millisecond); err != nil {
 		return err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -12,11 +13,11 @@ const (
 )
 
 type Pattern struct {
-	pattern [][2]uint
+	pattern [][2]time.Duration
 	repeat  bool
 }
 
-func NewPattern(pattern [][2]uint, repeat bool) *Pattern {
+func NewPattern(pattern [][2]time.Duration, repeat bool) *Pattern {
 	return &Pattern{
 		pattern,
 		repeat,
@@ -50,7 +51,7 @@ func (p *Pattern) Setup(root string) error {
 
 	var pStr string
 	for _, t := range p.pattern {
-		pStr = fmt.Sprintf("%s %d %d", pStr, t[0], t[1])
+		pStr = fmt.Sprintf("%s %d %d", pStr, t[0]/time.Millisecond, t[1]/time.Millisecond)
 	}
 	if _, err := patternFile.WriteString(pStr); err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -12,13 +13,13 @@ const (
 )
 
 type Oneshot struct {
-	delayOn  uint
-	delayOff uint
+	delayOn  time.Duration
+	delayOff time.Duration
 	invert   bool
 	c        chan interface{}
 }
 
-func NewOneshot(delayOn, delayOff uint, invert bool) *Oneshot {
+func NewOneshot(delayOn, delayOff time.Duration, invert bool) *Oneshot {
 	return &Oneshot{
 		delayOn:  delayOn,
 		delayOff: delayOff,
@@ -53,10 +54,10 @@ func (o *Oneshot) Setup(root string) error {
 	}
 	defer offFile.Close()
 
-	if _, err := fmt.Fprintf(onFile, "%d", o.delayOn); err != nil {
+	if _, err := fmt.Fprintf(onFile, "%d", o.delayOn/time.Millisecond); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(offFile, "%d", o.delayOff); err != nil {
+	if _, err := fmt.Fprintf(offFile, "%d", o.delayOff/time.Millisecond); err != nil {
 		return err
 	}
 
