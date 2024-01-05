@@ -60,17 +60,6 @@ func New(name string) (*LED, error) {
 	return led, nil
 }
 
-func (l *LED) Close() error {
-	if !l.lock.TryLock() {
-		return errors.New("LED still in use, can't close")
-	}
-	defer l.lock.Unlock()
-
-	l.ClearTrigger()
-
-	return l.bFile.Close()
-}
-
 func (l *LED) MaxBrightness() uint {
 	return l.maxBrightness
 }
@@ -104,6 +93,37 @@ func (l *LED) SetBrightness(b uint) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
+	return l.setBrightnessInner(b)
+}
+
+func (l *LED) GetTrigger() trigger.Trigger {
+	return l.trigger
+}
+
+func (l *LED) SetTrigger(t trigger.Trigger) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	return l.setTriggerInner(t)
+}
+
+func (l *LED) ClearTrigger() error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	return l.clearTriggerInner()
+}
+
+func (l *LED) Close() error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	l.clearTriggerInner()
+
+	return l.bFile.Close()
+}
+
+func (l *LED) setBrightnessInner(b uint) error {
 	if _, err := l.bFile.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
@@ -115,14 +135,7 @@ func (l *LED) SetBrightness(b uint) error {
 	return nil
 }
 
-func (l *LED) GetTrigger() trigger.Trigger {
-	return l.trigger
-}
-
-func (l *LED) SetTrigger(t trigger.Trigger) error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-
+func (l *LED) setTriggerInner(t trigger.Trigger) error {
 	if l.trigger != nil {
 		l.trigger.Cleanup()
 	}
@@ -144,11 +157,11 @@ func (l *LED) SetTrigger(t trigger.Trigger) error {
 	return nil
 }
 
-func (l *LED) ClearTrigger() error {
+func (l *LED) clearTriggerInner() error {
 	if l.trigger != nil {
 		l.trigger.Cleanup()
 	}
-	if err := l.SetBrightness(0); err != nil {
+	if err := l.setBrightnessInner(0); err != nil {
 		return err
 	}
 
