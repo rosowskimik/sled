@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +17,7 @@ type Oneshot struct {
 	delayOn  time.Duration
 	delayOff time.Duration
 	invert   bool
-	c        chan interface{}
+	c        chan<- interface{}
 }
 
 func NewOneshot(delayOn, delayOff time.Duration, invert bool) *Oneshot {
@@ -24,12 +25,16 @@ func NewOneshot(delayOn, delayOff time.Duration, invert bool) *Oneshot {
 		delayOn:  delayOn,
 		delayOff: delayOff,
 		invert:   invert,
-		c:        make(chan interface{}),
+		c:        nil,
 	}
 }
 
-func (o *Oneshot) Shot() chan<- interface{} {
-	return o.c
+func (o *Oneshot) Shoot() error {
+	if o.c == nil {
+		return errors.New("Attempt to shoot on uninitialized Oneshot trigger")
+	}
+	o.c <- nil
+	return nil
 }
 
 func (o *Oneshot) Setup(root string) error {
@@ -77,12 +82,14 @@ func (o *Oneshot) Setup(root string) error {
 		return err
 	}
 
+	c := make(chan interface{})
 	go func(f *os.File, c <-chan interface{}) {
 		for range c {
 			f.WriteString("1")
 		}
 		f.Close()
-	}(shotFile, o.c)
+	}(shotFile, c)
+	o.c = c
 
 	return nil
 }
@@ -92,5 +99,8 @@ func (*Oneshot) Name() string {
 }
 
 func (o *Oneshot) Cleanup() {
-	close(o.c)
+	if o.c != nil {
+		close(o.c)
+		o.c = nil
+	}
 }
