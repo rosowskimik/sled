@@ -124,6 +124,10 @@ func (l *LED) Close() error {
 }
 
 func (l *LED) setBrightnessInner(b uint) error {
+	if err := l.clearTriggerInner(); err != nil {
+		return err
+	}
+
 	if _, err := l.bFile.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
@@ -158,10 +162,18 @@ func (l *LED) setTriggerInner(t trigger.Trigger) error {
 }
 
 func (l *LED) clearTriggerInner() error {
-	if l.trigger != nil {
-		l.trigger.Cleanup()
+	if l.trigger == nil {
+		return nil
 	}
-	if err := l.setBrightnessInner(0); err != nil {
+
+	l.trigger.Cleanup()
+
+	tPath := filepath.Join(l.root, "trigger")
+	tFile, err := os.OpenFile(tPath, os.O_WRONLY, 0)
+	if err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(tFile, "none"); err != nil {
 		return err
 	}
 
