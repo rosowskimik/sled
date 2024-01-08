@@ -12,14 +12,26 @@ const (
 	repeatFalse = "1"
 )
 
-type Pattern struct {
-	pattern [][2]time.Duration
-	repeat  bool
+type Step struct {
+	Brightness uint
+	Duration   time.Duration
 }
 
-func NewPattern(pattern [][2]time.Duration, repeat bool) *Pattern {
+func NewStep(brightness uint, duration time.Duration) Step {
+	return Step{
+		Brightness: brightness,
+		Duration:   duration,
+	}
+}
+
+type Pattern struct {
+	steps  []Step
+	repeat bool
+}
+
+func NewPattern(repeat bool, steps ...Step) *Pattern {
 	return &Pattern{
-		pattern,
+		steps,
 		repeat,
 	}
 }
@@ -50,8 +62,8 @@ func (p *Pattern) Setup(root string) error {
 	}
 
 	var pStr string
-	for _, t := range p.pattern {
-		pStr = fmt.Sprintf("%s %d %d", pStr, t[0]/time.Millisecond, t[1]/time.Millisecond)
+	for _, step := range p.steps {
+		pStr = fmt.Sprintf("%s %d %d", pStr, step.Brightness, ledDelay(step.Duration))
 	}
 	if _, err := patternFile.WriteString(pStr); err != nil {
 		return err

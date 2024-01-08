@@ -1,9 +1,19 @@
 package trigger
 
+import "time"
+
 type Trigger interface {
 	Setup(root string) error
 	Name() string
 	Cleanup()
+}
+
+func ledDelay(d time.Duration) int64 {
+	if d > 0 && d < time.Millisecond {
+		d = time.Millisecond
+	}
+
+	return int64(d / time.Millisecond)
 }
 
 type simple struct{}
