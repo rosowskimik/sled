@@ -59,10 +59,10 @@ func (o *Oneshot) Setup(root string) error {
 	}
 	defer offFile.Close()
 
-	if _, err := fmt.Fprintf(onFile, "%d", o.delayOn/time.Millisecond); err != nil {
+	if _, err := fmt.Fprintf(onFile, "%d", ledDelay(o.delayOn)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(offFile, "%d", o.delayOff/time.Millisecond); err != nil {
+	if _, err := fmt.Fprintf(offFile, "%d", ledDelay(o.delayOff)); err != nil {
 		return err
 	}
 

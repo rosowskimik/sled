@@ -34,10 +34,10 @@ func (t *Timer) Setup(root string) error {
 	}
 	defer offFile.Close()
 
-	if _, err := fmt.Fprintf(onFile, "%d", t.delayOn/time.Millisecond); err != nil {
+	if _, err := fmt.Fprintf(onFile, "%d", ledDelay(t.delayOn)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(offFile, "%d", t.delayOff/time.Millisecond); err != nil {
+	if _, err := fmt.Fprintf(offFile, "%d", ledDelay(t.delayOff)); err != nil {
 		return err
 	}
 
