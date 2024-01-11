@@ -118,7 +118,9 @@ func (l *LED) Close() error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	l.clearTriggerInner()
+	if err := l.setBrightnessInner(0); err != nil {
+		return err
+	}
 
 	return l.bFile.Close()
 }
